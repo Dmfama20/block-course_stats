@@ -7,4 +7,4 @@ This plugin ...
 - ...calculates the maximum points (w.r.t course total) of all course participants
 - ...calculates the average points (w.r.t course total) of all course participants
 
- **All calculations are done via cron job every hour.**.
+ **All calculations are done via cron job every hour.**
