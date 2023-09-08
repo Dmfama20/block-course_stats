@@ -1,4 +1,5 @@
-#Moodle block for displaying a simple course statistic
+Moodle block for displaying a simple course statistic
+==========
 
 This plugin ...
 - ...shows the number of participants completed the course and the total number of participants in course
