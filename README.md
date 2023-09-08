@@ -1,4 +1,4 @@
-Moodle block for displaying a simple course statistics
+A simple Moodle block for displaying course completion statistics
 ==========
 
 This plugin ...
