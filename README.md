@@ -1,4 +1,4 @@
-Moodle block for displaying a simple course statistic
+Moodle block for displaying a simple course statistics
 ==========
 
 This plugin ...
