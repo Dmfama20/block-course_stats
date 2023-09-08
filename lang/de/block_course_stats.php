@@ -24,16 +24,16 @@
  */
 
 $string['blockstring'] = 'Block string';
-$string['descconfig'] = 'Description of the config section';
-$string['descfoo'] = 'Config description';
-$string['headerconfig'] = 'Config section header';
-$string['labelfoo'] = 'Config label';
-$string['course_stats:addinstance'] = 'Add a course_stats block';
-$string['course_stats:myaddinstance'] = 'Add a course_stats block to my moodle';
-$string['pluginname'] = 'course completion statistics';
-$string['participantscompleted'] = 'Participants completed: ';
-$string['minpoints'] = 'Min points: ';
-$string['maxpoints'] = 'Max points: ';
-$string['medianpoints'] = 'average points: ';
-$string['nocompletions'] = 'No completions.';
-$string['updatestats'] = 'Calculation of course completion statistics';
+$string['descconfig'] = 'Beschreibung der Konfiguration';
+$string['descfoo'] = 'Beschreibung der Konfiguration';
+$string['headerconfig'] = 'Konfigurationsbereich Header';
+$string['labelfoo'] = 'Label Konfiguration';
+$string['course_stats:addinstance'] = 'Kursabschluss-Statistik hinzufügen';
+$string['course_stats:myaddinstance'] = 'Kursabschluss-Statistik zu meinem Moodlesystem hinzufügen';
+$string['pluginname'] = 'Kursabschluss-Statistiken';
+$string['participantscompleted'] = 'Teilnehmer abgeschlossen: ';
+$string['minpoints'] = 'Min Punkte: ';
+$string['maxpoints'] = 'Max Punkte: ';
+$string['medianpoints'] = 'Mittelwert Punkte: ';
+$string['nocompletions'] = 'Kein Kursabschluss durch Teilnehmer';
+$string['updatestats'] = 'Berechnung der Kursabschluss-Statistik';

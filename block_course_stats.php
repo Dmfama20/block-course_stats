@@ -34,54 +34,36 @@ class block_course_stats extends block_base {
         if ($this->content !== null) {
             return $this->content;
         }
-        
         global $DB, $COURSE;
+
         
+       
         $courseid = $COURSE->id;
-        
-        // Fetch number of participants who have completed the course
-        $completedCount = $DB->count_records_sql(
-            "SELECT COUNT(*) FROM {course_completions} WHERE course = ? AND timecompleted IS NOT NULL",
-            [$courseid]
-        );
 
-        // Fetch minimum and maximum points (grades)
-        $sql = "SELECT MIN(finalgrade) as min_grade, MAX(finalgrade) as max_grade FROM {grade_grades} WHERE itemid IN (SELECT id FROM {grade_items} WHERE courseid = ?)";
-        $minmax = $DB->get_record_sql($sql, [$courseid]);
-
-        // Fetch all grades to calculate median
-        $allGrades = $DB->get_records_sql(
-            "SELECT finalgrade FROM {grade_grades} WHERE itemid IN (SELECT id FROM {grade_items} WHERE courseid = ?) ORDER BY finalgrade ASC",
-            [$courseid]
-        );
-
-        $gradesArray = array();
-        foreach($allGrades as $grade) {
-            if(!is_null($grade->finalgrade)) {
-                $gradesArray[] = $grade->finalgrade;
-            }
-        }
-
-        $count = count($gradesArray);
-        $median = 0;
-        if ($count > 0) {
-            sort($gradesArray);
-            $middle = floor(($count - 1) / 2);
-
-            if ($count % 2) {
-                $median = $gradesArray[$middle];
-            } else {
-                $low = $gradesArray[$middle];
-                $high = $gradesArray[$middle + 1];
-                $median = (($low + $high) / 2);
-            }
-        }
+        // Fetch stats from block_course_stats table
+        $stats = $DB->get_record('block_course_stats', array('courseid' => $courseid));
 
         $this->content = new stdClass;
-        $this->content->text = "Participants completed: $completedCount";
-        $this->content->text .= "<br>Min Points: " . round($minmax->min_grade, 2);
-        $this->content->text .= "<br>Max Points: " . round($minmax->max_grade, 2);
-        $this->content->text .= "<br>Median Points: " . round($median, 2);
+        
+        if ($stats) {
+            if($stats->completed_count>0)   {
+
+            $this->content->text = get_string('participantscompleted', 'block_course_stats').$stats->completed_count."/".$stats->participants;
+            $this->content->text .= "<br>". get_string('minpoints', 'block_course_stats')  . round($stats->minpoints, 2);
+            $this->content->text .= "<br>".get_string('maxpoints', 'block_course_stats')   . round($stats->maxpoints, 2);
+            $this->content->text .= "<br>".get_string('medianpoints', 'block_course_stats')  .  round($stats->averagepoints, 2);
+            }
+            else {
+                $this->content->text = get_string('nocompletions', 'block_course_stats');
+            }
+
+        } else {
+            $this->content->text = get_string('nocompletions', 'block_course_stats');
+        }
+
+        return $this->content;
+
+        
         
         return $this->content;
     }

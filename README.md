@@ -1,7 +1,6 @@
 The following steps should get you up and running with
 this block template code.
 
-* DO NOT PANIC!
 
 * Unzip the archive and read this file
 
