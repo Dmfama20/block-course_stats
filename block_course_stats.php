@@ -24,27 +24,33 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+
 class block_course_stats extends block_base {
 
     function init() {
+        global $DB;
         $this->title = get_string('pluginname', 'block_course_stats');
-    }
+        
+    }   
 
     public function get_content() {
         if ($this->content !== null) {
             return $this->content;
         }
         global $DB, $COURSE;
-
-        
+       
        
         $courseid = $COURSE->id;
+        $this->content = new stdClass;
 
+        if($this->config->useowncoursecompletion && count($this->config->coursestatsativities)==0)  {
+            $this->content->text = "Sie haben in den Blockeinstellungen den eigenen Kursabschluss definiert jedoch keine Aktivitäten ausgewählt. Bitte wählen Sie mindestens eine Aktivät aus.";
+            return $this->content;
+
+        }
         // Fetch stats from block_course_stats table
         $stats = $DB->get_record('block_course_stats', array('courseid' => $courseid));
-
-        $this->content = new stdClass;
-        
+       
         if ($stats) {
             if($stats->completed_count>0)   {
 
@@ -52,6 +58,8 @@ class block_course_stats extends block_base {
             $this->content->text .= "<br>". get_string('minpoints', 'block_course_stats')  . round($stats->minpoints, 2);
             $this->content->text .= "<br>".get_string('maxpoints', 'block_course_stats')   . round($stats->maxpoints, 2);
             $this->content->text .= "<br>".get_string('medianpoints', 'block_course_stats')  .  round($stats->averagepoints, 2);
+            
+        
             }
             else {
                 $this->content->text = get_string('nocompletions', 'block_course_stats');
@@ -59,13 +67,10 @@ class block_course_stats extends block_base {
 
         } else {
             $this->content->text = get_string('nocompletions', 'block_course_stats');
+           
         }
-
-        return $this->content;
-
-        
-        
-        return $this->content;
+         return $this->content;
+       
     }
 
     // my moodle can only have SITEID and it's redundant here, so take it away

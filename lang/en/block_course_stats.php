@@ -37,3 +37,11 @@ $string['maxpoints'] = 'Max points: ';
 $string['medianpoints'] = 'average points: ';
 $string['nocompletions'] = 'No completions.';
 $string['updatestats'] = 'Calculation of course completion statistics';
+$string['useowncompletion'] = 'Define own course completion';
+$string['pointsneeded'] = 'Grade needed';
+$string['why_use_own_completion_help'] = 'Define your own course completion by activity completions and a final grade.';
+$string['why_use_points_help'] = 'Enter grade needed. Enter 0 if you want to skip this field.';
+$string['selectactivities'] = 'Chose activities';
+
+
+

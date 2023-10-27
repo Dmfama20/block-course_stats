@@ -24,6 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2023091400;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2023102700;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires = 2022041900;         //requires at least Moodle 4.0!
 $plugin->component = 'block_course_stats'; // Full name of the plugin (used for diagnostics)
