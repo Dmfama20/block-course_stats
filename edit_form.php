@@ -54,11 +54,23 @@ class block_course_stats_edit_form extends block_edit_form {
 
         $mform->addElement('selectyesno', 'config_useowncoursecompletion',get_string('useowncompletion', 'block_course_stats'));
         $mform->setDefault('config_useowncoursecompletion', 0);
-        $mform->addHelpButton('config_useowncoursecompletion', 'why_use_own_completion', 'block_course_stats');  
+        $mform->addHelpButton('config_useowncoursecompletion', 'why_use_own_completion', 'block_course_stats'); 
+        // Grade needed to pass the course 
         $mform->addElement('text', 'config_points', get_string('pointsneeded', 'block_course_stats'));
         $mform->setType('config_points', PARAM_FLOAT);
         $mform->addHelpButton('config_points', 'why_use_points', 'block_course_stats');  
         $mform->hideif('config_points', 'config_useowncoursecompletion', 'neq', 1);
+        // maximum grade of the course 
+        $mform->addElement('text', 'config_maxpoints', get_string('pointsmax', 'block_course_stats'));
+        $mform->setType('config_maxpoints', PARAM_FLOAT);
+        $mform->addHelpButton('config_maxpoints', 'why_use_maxpoints', 'block_course_stats');  
+        $mform->hideif('config_maxpoints', 'config_useowncoursecompletion', 'neq', 1);
+        // passing grade of the course 
+        $mform->addElement('text', 'config_passingpoints', get_string('pointspassing', 'block_course_stats'));
+        $mform->setType('config_passingpoints', PARAM_FLOAT);
+        $mform->addHelpButton('config_passingpoints', 'why_use_passingpoints', 'block_course_stats');  
+        $mform->hideif('config_passingpoints', 'config_useowncoursecompletion', 'neq', 1);
+
         
         // Selected activities by the user
         $activitiestoinclude = [];

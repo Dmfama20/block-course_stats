@@ -53,11 +53,23 @@ class block_course_stats extends block_base {
        
         if ($stats) {
             if($stats->completed_count>0)   {
+                if(!$stats->owncoursecompletion)    {
+                    $this->content->text = get_string('participantscompleted', 'block_course_stats').$stats->completed_count."/".$stats->participants;
+                    $this->content->text .= "<br>". get_string('minpoints', 'block_course_stats')  . round($stats->minpoints, 2);
+                    $this->content->text .= "<br>".get_string('maxpoints', 'block_course_stats')   . round($stats->maxpoints, 2);
+                    $this->content->text .= "<br>".get_string('medianpoints', 'block_course_stats')  .  round($stats->averagepoints, 2);
+                }
+                else    {
+                    $this->content->text = get_string('participantscompleted', 'block_course_stats').$stats->completed_count."/".$stats->participants;
+                    $this->content->text .= "<br>".get_string('partcipantspassed', 'block_course_stats')  .  round($stats->gradepassingcourse, 2);
+                    $this->content->text .= "<br>". get_string('minpoints', 'block_course_stats')  . round($stats->minpoints, 2);
+                    $this->content->text .= "<br>".get_string('maxpoints', 'block_course_stats')   . round($stats->maxpoints, 2);
+                    $this->content->text .= "<br>".get_string('medianpoints', 'block_course_stats')  .  round($stats->averagepoints, 2);
+                    $this->content->text .= "<br>".get_string('pointsmax', 'block_course_stats')  .  round($stats->maxgradescourse, 2);
 
-            $this->content->text = get_string('participantscompleted', 'block_course_stats').$stats->completed_count."/".$stats->participants;
-            $this->content->text .= "<br>". get_string('minpoints', 'block_course_stats')  . round($stats->minpoints, 2);
-            $this->content->text .= "<br>".get_string('maxpoints', 'block_course_stats')   . round($stats->maxpoints, 2);
-            $this->content->text .= "<br>".get_string('medianpoints', 'block_course_stats')  .  round($stats->averagepoints, 2);
+                }
+
+         
             
         
             }

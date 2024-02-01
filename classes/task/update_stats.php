@@ -137,13 +137,8 @@ function block_course_stats_get_enrolled_users_by_courseid($courseid) {
 
     // Ensure the course exists.
     $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
-
-    
-
-
     // Get the context of the course.
     $context = \context_course::instance($courseid);
-
     // Fetch enrolled users.
     $enrolled_users = get_enrolled_users( $context, '', 0, 'u.*', 'u.lastname ASC');
 
@@ -175,27 +170,72 @@ function block_course_stats_get_completions_of_user($userid, $activities) {
     
 }
 
-
-function block_course_stats_calculate_own_completion($activities,$courseid, $grade) {
+function block_course_stats_get_course_final_grades($course_id) {
     global $DB;
 
-        $CourseUsers = $this->block_course_stats_get_enrolled_users_by_courseid($courseid);
-        
-        $completedUsers=[];
+    // Array to hold the final grades
+    $final_grades = array();
 
+    // Get the grade items for the course
+    $grade_items = grade_item::fetch_all(array('courseid' => $course_id, 'itemtype' => 'course'));
+
+    // Check if there is a course grade item
+    if (empty($grade_items)) {
+        return $final_grades; // Return empty array if no grade items found
+    }
+
+    // Assuming there's only one course grade item
+    $course_grade_item = reset($grade_items);
+
+    // Get enrolled users in the course
+    $context = context_course::instance($course_id);
+    $enrolled_users = get_enrolled_users($context);
+
+    // Loop through each user and get their final grade
+    foreach ($enrolled_users as $user) {
+        $grade = $course_grade_item->get_grade($user->id, true);
+        $final_grade = $grade ? $grade->finalgrade : null; // Get the final grade, if available
+
+        // Add the final grade to the array
+        $final_grades[$user->id] = $final_grade;
+    }
+
+    return $final_grades;
+}
+
+
+function block_course_stats_calculate_own_completion($activities,$courseid, $gradecompletecourse, $gradepasscourse, $maxgradecourse) {
+    global $DB;
+        // First, get all partcipants in the course
+        $CourseUsers = $this->block_course_stats_get_enrolled_users_by_courseid($courseid);
+        $completedUsers=[];
+        $finalgradesall= [];
+        $finalgradescompleted = [];
+        // Second, find those participants who completed all neccessary activites and get final grades.
+        //  Moreover, calculate final grade of all partcipants
+        // Returns an array of user ids
         foreach($CourseUsers as $user)  {
             // check first if user has all activities completed
             if($this->block_course_stats_get_completions_of_user($user->id, $activities)) {
                 array_push($completedUsers, $user->id);
+                $sql = "SELECT finalgrade FROM {grade_grades}
+                WHERE userid = ? AND itemid IN (SELECT id FROM {grade_items} WHERE courseid = ? AND itemtype ='course' AND  finalgrade >= ?)";
+                $sqlarray=[$user->id,$courseid,$gradepasscourse ];
+                $grade = $DB->get_record_sql($sql,$sqlarray );
+                // echo var_dump($grade);
+                array_push($finalgradescompleted,$grade->finalgrade);
             }
-
+            $sql = "SELECT finalgrade FROM {grade_grades}
+            WHERE userid = ? AND itemid IN (SELECT id FROM {grade_items} WHERE courseid = ? AND itemtype ='course' )";
+            $sqlarray=[$user->id,$courseid];
+            $grade = $DB->get_record_sql($sql,$sqlarray );
+            // echo var_dump($grade);
+            array_push($finalgradesall,$grade->finalgrade);
         }
-
-        
+        // echo var_dump($finalgradescompleted);
         $completedCount = count($completedUsers);
-
-        if ($completedCount==0) {
             // Nobody completed the course
+        if ($completedCount==0) {
             $totalCount = $this->count_total_participants($courseid);
             $record = $DB->get_record('block_course_stats', ['courseid' => $courseid]);
             if ($record) {
@@ -204,6 +244,9 @@ function block_course_stats_calculate_own_completion($activities,$courseid, $gra
                 $record->participants = $totalCount;
                 $record->averagepoints = 0;  // Replace 'medianpoints' with 'averagepoints'
                 $record->completed_count = $completedCount;
+                $record->owncoursecompletion = 1;
+                $record->maxgradescourse = $maxgradecourse;
+                $record->gradepassingcourse = $gradepasscourse;
                 $record->timestamp = time();
                 $DB->update_record('block_course_stats', $record);
             } else {
@@ -214,49 +257,45 @@ function block_course_stats_calculate_own_completion($activities,$courseid, $gra
                 $newrecord->participants = $totalCount;
                 $newrecord->averagepoints = 0 ; // Replace 'medianpoints' with 'averagepoints'
                 $newrecord->completed_count = $completedCount;
+                $newrecord->owncoursecompletion = 1;
+                $newrecord->maxgradescourse = $maxgradecourse;
+                $newrecord->gradepassingcourse = $gradepasscourse;
                 $newrecord->timestamp = time();
                 $DB->insert_record('block_course_stats', $newrecord);
             }
-           
         }
+         // At least one person completed the course
         else {
-            // At least one person completed the course
-
-        list($insql, $inparams) = $DB->get_in_or_equal( $completedUsers);
-
-        // Now check grades of each user 
-
-        if($grade > 0)  {  
-
-            $sql = "SELECT finalgrade FROM {grade_grades}
-            WHERE userid $insql AND itemid IN (SELECT id FROM {grade_items} WHERE courseid = ? AND itemtype ='course' AND finalgrade >= ?)";
-            $grades = $DB->get_records_sql($sql, array_merge($inparams, [$courseid,$grade]));
-            $completedCount=count($grades);
-            $gradesArr = array_values(array_map(function($grade) {
-                return $grade->finalgrade;
-            }, $grades));
-
-            if (!empty($gradesArr)) {
-                // Initialize variables to store min and max
-                $minPoints = min($gradesArr);  // or some other large number
-                $maxPoints = max($gradesArr);  // or some other small number
-    
+        if($gradecompletecourse > 0)  {  
+           
+            // Calculate min and max of all partcipants completed the course
+            if (!empty($finalgradescompleted)) {
+                // Initialize variables to store min and max/ Remove NULL-Entries
+                $minPoints = min(array_filter($finalgradescompleted,'strlen'));  // or some other large number
+                $maxPoints = max(array_filter($finalgradescompleted,'strlen'));  // or some other small number
                 // Calculate average
                 if($completedCount!=0)  {
-                    $average = array_sum($gradesArr) / $completedCount;
+                    $average = array_sum($finalgradescompleted) / $completedCount;
                 }
-                
             } 
         }
-
         else {
             // If no grades are available but users have completed the course
             $minPoints = 0;
             $maxPoints = 0;
             $average = 0;
         }
+        echo var_dump($courseid);
+        echo var_dump($finalgradescompleted);
+        // echo var_dump($minPoints);
         // Count total participants
         $totalCount = $this->count_total_participants($courseid);
+      
+        $number = $gradepasscourse;
+
+        $gtn = array_filter($finalgradesall, function($value) use ($number) { return $value > $number; });
+        // echo count($gtn); 
+        $countpassed = count($gtn);
         $record = $DB->get_record('block_course_stats', ['courseid' => $courseid]);
         if ($record) {
             $record->minpoints = $minPoints;
@@ -264,6 +303,9 @@ function block_course_stats_calculate_own_completion($activities,$courseid, $gra
             $record->participants = $totalCount;
             $record->averagepoints = $average;  // Replace 'medianpoints' with 'averagepoints'
             $record->completed_count = $completedCount;
+            $record->owncoursecompletion = 1;
+            $record->maxgradescourse = $maxgradecourse;
+            $record->gradepassingcourse = $countpassed;
             $record->timestamp = time();
             $DB->update_record('block_course_stats', $record);
         } else {
@@ -274,6 +316,9 @@ function block_course_stats_calculate_own_completion($activities,$courseid, $gra
             $newrecord->participants = $totalCount;
             $newrecord->averagepoints = $average;  // Replace 'medianpoints' with 'averagepoints'
             $newrecord->completed_count = $completedCount;
+            $newrecord->owncoursecompletion = 1;
+            $newrecord->maxgradescourse = $maxgradecourse;
+            $newrecord->gradepassingcourse = $countpassed;
             $newrecord->timestamp = time();
             $DB->insert_record('block_course_stats', $newrecord);
         }
@@ -294,9 +339,11 @@ function block_course_stats_calculate_own_completion($activities,$courseid, $gra
                 $courseid= $inst->instanceid;
                 // All acticties are stored in $config->coursestatsativities
                 $activities = $config->coursestatsativities;
-                $gradeneeded = $config->points;
+                $gradepasscourse = $config->passingpoints;
+                $maxgrade = $config->maxpoints;
+                $gradecompletecourse = $config->points; 
                 if($config->useowncoursecompletion) {
-                    $this->block_course_stats_calculate_own_completion($activities,$courseid ,$gradeneeded);
+                    $this->block_course_stats_calculate_own_completion($activities,$courseid ,$gradecompletecourse,$gradepasscourse, $maxgrade);
                 }
                 else {
                     $this->block_course_stats_calculate_core_completion( $courseid);

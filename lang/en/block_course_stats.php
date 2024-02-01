@@ -42,6 +42,9 @@ $string['pointsneeded'] = 'Grade needed';
 $string['why_use_own_completion_help'] = 'Define your own course completion by activity completions and a final grade.';
 $string['why_use_points_help'] = 'Enter grade needed. Enter 0 if you want to skip this field.';
 $string['selectactivities'] = 'Chose activities';
+$string['pointsmax'] = 'Maximum grade of this course: ';
+$string['pointspassing'] = 'Grade needed to pass: ';
+$string['partcipantspassed'] = 'Participants passed: ';
 
 
 
